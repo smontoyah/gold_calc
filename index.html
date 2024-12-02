@@ -79,60 +79,56 @@
         const kilates = [24, 22, 20, 18, 14, 12, 10];
         const densidad = [19.32, 17.69, 16.08, 14.47, 11.25, 9.65, 8.04];
         const ley = [100, 916, 900, 750, 585, 500, 417];
-
-        // Función para calcular coeficientes de regresión cuadrática
-        function calcularCoeficientes(x, y) {
-            const n = x.length;
-            const X = [];
-            const Y = y;
-
-            // Construir la matriz de diseño
-            for (let i = 0; i < n; i++) {
-                X.push([x[i] ** 2, x[i], 1]);
-            }
-
-            // Multiplicar X^T * X
-            const XT = math.transpose(X);
-            const XTX = math.multiply(XT, X);
-
-            // Multiplicar X^T * Y
-            const XTY = math.multiply(XT, Y);
-
-            // Resolver el sistema (X^T * X) * coef = (X^T * Y)
-            const coeficientes = math.lusolve(XTX, XTY);
-            return coeficientes.map(c => c[0]); // Aplanar matriz
+    
+        // Interpolación cúbica
+        function cubicInterpolation(x, xs, ys) {
+            if (x <= xs[0]) return ys[0]; // Si está fuera de rango inferior
+            if (x >= xs[xs.length - 1]) return ys[ys.length - 1]; // Si está fuera de rango superior
+    
+            // Encontrar el intervalo donde está x
+            let i = 0;
+            while (x > xs[i + 1]) i++;
+    
+            // Valores en el intervalo
+            const x0 = xs[i], x1 = xs[i + 1];
+            const y0 = ys[i], y1 = ys[i + 1];
+    
+            // Diferencias y derivadas
+            const dx = x1 - x0;
+            const dy = y1 - y0;
+    
+            // Parámetros de la interpolación cúbica
+            const t = (x - x0) / dx;
+            const a = y0;
+            const b = dy / dx;
+            const c = 0; // Suavizado simple
+            const d = 0; // Suavizado simple
+    
+            // Calcular el valor interpolado
+            return a + b * t + c * t ** 2 + d * t ** 3;
         }
-
-        // Calcular coeficientes de kilates y ley
-        const coef_kilates = calcularCoeficientes(densidad, kilates);
-        const coef_ley = calcularCoeficientes(densidad, ley);
-
-        // Función polinómica
-        function polyFunc(x, coef) {
-            return coef[0] * x ** 2 + coef[1] * x + coef[2];
-        }
-
+    
         // Función para estimar kilates y ley
         function estimarKilatesLey(densidadInput) {
-            const kilatesEst = polyFunc(densidadInput, coef_kilates);
-            const leyEst = polyFunc(densidadInput, coef_ley);
+            const kilatesEst = cubicInterpolation(densidadInput, densidad, kilates);
+            const leyEst = cubicInterpolation(densidadInput, densidad, ley);
             return { kilates: kilatesEst, ley: leyEst };
         }
-
+    
         // Función para calcular y mostrar resultados
         function calcular() {
             const densidadInput = parseFloat(document.getElementById("densidad").value);
             const errorDiv = document.getElementById("error");
             const resultadoDiv = document.getElementById("resultado");
-
+    
             errorDiv.textContent = ""; // Limpiar errores
             resultadoDiv.textContent = ""; // Limpiar resultados
-
+    
             if (isNaN(densidadInput)) {
                 errorDiv.textContent = "Por favor, ingrese un valor numérico válido.";
                 return;
             }
-
+    
             try {
                 const { kilates, ley } = estimarKilatesLey(densidadInput);
                 resultadoDiv.innerHTML = `
@@ -143,7 +139,7 @@
                 errorDiv.textContent = "Ocurrió un error en el cálculo.";
             }
         }
-
+    
         // Función para limpiar los campos
         function limpiar() {
             document.getElementById("densidad").value = "";
@@ -151,6 +147,7 @@
             document.getElementById("error").textContent = "";
         }
     </script>
+    
 
     <!-- Biblioteca Math.js para operaciones matriciales -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.0/math.min.js"></script>
