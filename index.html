@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Oro</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f7f7f7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #007bff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        .error {
+            color: red;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Calculadora de Oro</h1>
+        <label for="densidad">Ingrese la densidad (g/cm³):</label>
+        <input type="number" id="densidad" placeholder="Ejemplo: 15">
+        <button onclick="calcular()">Calcular</button>
+        <button onclick="limpiar()">Limpiar</button>
+        <div class="result" id="resultado"></div>
+        <div class="error" id="error"></div>
+    </div>
+
+    <script>
+        // Datos de la tabla
+        const kilates = [24, 22, 20, 18, 14, 12, 10];
+        const densidad = [19.32, 17.69, 16.08, 14.47, 11.25, 9.65, 8.04];
+        const ley = [100, 916, 900, 750, 585, 500, 417];
+
+        // Función polinómica para ajuste
+        function polyFunc(x, a, b, c) {
+            return a * x ** 2 + b * x + c;
+        }
+
+        // Ajuste polinómico (parámetros preajustados)
+        const params_k = [-0.0134, 2.5434, -25.0381]; // Para kilates
+        const params_l = [11.4302, -557.2727, 10060.6061]; // Para ley
+
+        function estimarKilatesLey(densidadInput) {
+            const kilatesEst = polyFunc(densidadInput, ...params_k);
+            const leyEst = polyFunc(densidadInput, ...params_l);
+            return { kilates: kilatesEst, ley: leyEst };
+        }
+
+        // Función para calcular y mostrar resultados
+        function calcular() {
+            const densidadInput = parseFloat(document.getElementById("densidad").value);
+            const errorDiv = document.getElementById("error");
+            const resultadoDiv = document.getElementById("resultado");
+
+            errorDiv.textContent = ""; // Limpiar errores
+            resultadoDiv.textContent = ""; // Limpiar resultados
+
+            if (isNaN(densidadInput)) {
+                errorDiv.textContent = "Por favor, ingrese un valor numérico válido.";
+                return;
+            }
+
+            try {
+                const { kilates, ley } = estimarKilatesLey(densidadInput);
+                resultadoDiv.innerHTML = `
+                    Kilates estimados: ${kilates.toFixed(2)}<br>
+                    Ley estimada: ${ley.toFixed(2)}
+                `;
+            } catch (e) {
+                errorDiv.textContent = "Ocurrió un error en el cálculo.";
+            }
+        }
+
+        // Función para limpiar los campos
+        function limpiar() {
+            document.getElementById("densidad").value = "";
+            document.getElementById("resultado").textContent = "";
+            document.getElementById("error").textContent = "";
+        }
+    </script>
+</body>
+</html>
