@@ -80,18 +80,42 @@
         const densidad = [19.32, 17.69, 16.08, 14.47, 11.25, 9.65, 8.04];
         const ley = [100, 916, 900, 750, 585, 500, 417];
 
-        // Función polinómica para ajuste
-        function polyFunc(x, a, b, c) {
-            return a * x ** 2 + b * x + c;
+        // Función para calcular coeficientes de regresión cuadrática
+        function calcularCoeficientes(x, y) {
+            const n = x.length;
+            const X = [];
+            const Y = y;
+
+            // Construir la matriz de diseño
+            for (let i = 0; i < n; i++) {
+                X.push([x[i] ** 2, x[i], 1]);
+            }
+
+            // Multiplicar X^T * X
+            const XT = math.transpose(X);
+            const XTX = math.multiply(XT, X);
+
+            // Multiplicar X^T * Y
+            const XTY = math.multiply(XT, Y);
+
+            // Resolver el sistema (X^T * X) * coef = (X^T * Y)
+            const coeficientes = math.lusolve(XTX, XTY);
+            return coeficientes.map(c => c[0]); // Aplanar matriz
         }
 
-        // Ajuste polinómico (parámetros preajustados)
-        const params_k = [-0.0134, 2.5434, -25.0381]; // Para kilates
-        const params_l = [11.4302, -557.2727, 10060.6061]; // Para ley
+        // Calcular coeficientes de kilates y ley
+        const coef_kilates = calcularCoeficientes(densidad, kilates);
+        const coef_ley = calcularCoeficientes(densidad, ley);
 
+        // Función polinómica
+        function polyFunc(x, coef) {
+            return coef[0] * x ** 2 + coef[1] * x + coef[2];
+        }
+
+        // Función para estimar kilates y ley
         function estimarKilatesLey(densidadInput) {
-            const kilatesEst = polyFunc(densidadInput, ...params_k);
-            const leyEst = polyFunc(densidadInput, ...params_l);
+            const kilatesEst = polyFunc(densidadInput, coef_kilates);
+            const leyEst = polyFunc(densidadInput, coef_ley);
             return { kilates: kilatesEst, ley: leyEst };
         }
 
@@ -127,5 +151,8 @@
             document.getElementById("error").textContent = "";
         }
     </script>
+
+    <!-- Biblioteca Math.js para operaciones matriciales -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.0/math.min.js"></script>
 </body>
 </html>
