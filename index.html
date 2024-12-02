@@ -82,30 +82,18 @@
     
         // Interpolación cúbica
         function cubicInterpolation(x, xs, ys) {
-            if (x <= xs[0]) return ys[0]; // Si está fuera de rango inferior
-            if (x >= xs[xs.length - 1]) return ys[ys.length - 1]; // Si está fuera de rango superior
+            if (x <= xs[0]) return ys[0]; // Fuera del rango inferior
+            if (x >= xs[xs.length - 1]) return ys[ys.length - 1]; // Fuera del rango superior
     
-            // Encontrar el intervalo donde está x
             let i = 0;
             while (x > xs[i + 1]) i++;
     
-            // Valores en el intervalo
             const x0 = xs[i], x1 = xs[i + 1];
             const y0 = ys[i], y1 = ys[i + 1];
+            const t = (x - x0) / (x1 - x0);
     
-            // Diferencias y derivadas
-            const dx = x1 - x0;
-            const dy = y1 - y0;
-    
-            // Parámetros de la interpolación cúbica
-            const t = (x - x0) / dx;
-            const a = y0;
-            const b = dy / dx;
-            const c = 0; // Suavizado simple
-            const d = 0; // Suavizado simple
-    
-            // Calcular el valor interpolado
-            return a + b * t + c * t ** 2 + d * t ** 3;
+            // Interpolación lineal simple para debug inicial
+            return y0 * (1 - t) + y1 * t;
         }
     
         // Función para estimar kilates y ley
@@ -137,6 +125,7 @@
                 `;
             } catch (e) {
                 errorDiv.textContent = "Ocurrió un error en el cálculo.";
+                console.error(e);
             }
         }
     
@@ -147,6 +136,7 @@
             document.getElementById("error").textContent = "";
         }
     </script>
+    
     
 
     <!-- Biblioteca Math.js para operaciones matriciales -->
